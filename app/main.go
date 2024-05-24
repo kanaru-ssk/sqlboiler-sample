@@ -111,4 +111,22 @@ func main() {
 	for _, member := range teamMemberWithUser {
 		fmt.Println("UserID:", member.UserID, ", Name:", member.UserName, ", UserRole:", member.UserRole)
 	}
+
+	// 型安全にチーム2のメンバーを取得(usersテーブルと結合)
+	team2Members, err := models.TeamMembers(
+		models.TeamMemberWhere.TeamID.EQ(null.NewInt(2, true)),
+		qm.Load(models.TeamMemberRels.User),
+	).All(ctx, db)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	for _, teamMember := range team2Members {
+		if teamMember.R == nil || teamMember.R.User == nil {
+			fmt.Println("Error: related user not loaded")
+			continue
+		}
+		user := teamMember.R.User
+		fmt.Println("UserID:", user.ID, ", Name:", user.Name, ", UserRole:", teamMember.UserRole)
+	}
 }
